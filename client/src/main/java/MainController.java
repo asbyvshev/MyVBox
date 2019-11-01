@@ -68,4 +68,18 @@ public class MainController implements Initializable {
             Platform.runLater(r);
         }
     }
+
+    public void pressOnSendBtn(ActionEvent actionEvent) {
+        if (tfFileName.getLength() > 0) {
+            if (Files.exists(Paths.get("client/client_storage" + tfFileName.getText()))) {
+                try {
+                    Network.sendMsg(new FileMessage(Paths.get("server/server_storage/" + tfFileName.getText())));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            System.err.println("file not exist");
+        }
+    }
 }
