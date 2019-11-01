@@ -1,6 +1,3 @@
-import com.flamexander.netty.example.common.AbstractMessage;
-import com.flamexander.netty.example.common.FileMessage;
-import com.flamexander.netty.example.common.FileRequest;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -31,7 +28,7 @@ public class MainController implements Initializable {
                     AbstractMessage am = Network.readObject();
                     if (am instanceof FileMessage) {
                         FileMessage fm = (FileMessage) am;
-                        Files.write(Paths.get("client_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
+                        Files.write(Paths.get("client/client_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
                         refreshLocalFilesList();
                     }
                 }
@@ -57,7 +54,7 @@ public class MainController implements Initializable {
         updateUI(() -> {
             try {
                 filesList.getItems().clear();
-                Files.list(Paths.get("client_storage")).map(p -> p.getFileName().toString()).forEach(o -> filesList.getItems().add(o));
+                Files.list(Paths.get("client/client_storage")).map(p -> p.getFileName().toString()).forEach(o -> filesList.getItems().add(o));
             } catch (IOException e) {
                 e.printStackTrace();
             }

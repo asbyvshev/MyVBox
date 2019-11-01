@@ -1,5 +1,5 @@
-import com.flamexander.netty.example.common.FileMessage;
-import com.flamexander.netty.example.common.FileRequest;
+
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
@@ -13,8 +13,8 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
         try {
             if (msg instanceof FileRequest) {
                 FileRequest fr = (FileRequest) msg;
-                if (Files.exists(Paths.get("server_storage/" + fr.getFilename()))) {
-                    FileMessage fm = new FileMessage(Paths.get("server_storage/" + fr.getFilename()));
+                if (Files.exists(Paths.get("server/server_storage/" + fr.getFilename()))) {
+                    FileMessage fm = new FileMessage(Paths.get("server/server_storage/" + fr.getFilename()));
                     ctx.writeAndFlush(fm);
                 }
             }
