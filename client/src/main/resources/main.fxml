@@ -15,5 +15,9 @@
         <Button onAction="#pressOnDownloadBtn" text="Скачать" />
         <Button onAction="#pressOnSendBtn" text="Отправить" />
     </HBox>
-    <ListView fx:id="filesList" VBox.vgrow="ALWAYS" />
+    <HBox alignment="CENTER">
+        <ListView fx:id="clientFilesList" VBox.vgrow="ALWAYS" />
+        <ListView fx:id="serverFilesList" VBox.vgrow="ALWAYS" />
+    </HBox>
+
 </VBox>

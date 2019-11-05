@@ -17,7 +17,7 @@ public class MainController implements Initializable {
     TextField tfFileName;
 
     @FXML
-    ListView<String> filesList;
+    ListView<String>clientFilesList;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -53,8 +53,8 @@ public class MainController implements Initializable {
     public void refreshLocalFilesList() {
         updateUI(() -> {
             try {
-                filesList.getItems().clear();
-                Files.list(Paths.get("client/client_storage")).map(p -> p.getFileName().toString()).forEach(o -> filesList.getItems().add(o));
+                clientFilesList.getItems().clear();
+                Files.list(Paths.get("client/client_storage")).map(p -> p.getFileName().toString()).forEach(o -> clientFilesList.getItems().add(o));
             } catch (IOException e) {
                 e.printStackTrace();
             }
