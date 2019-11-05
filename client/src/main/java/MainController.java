@@ -10,6 +10,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
@@ -19,17 +21,27 @@ public class MainController implements Initializable {
     @FXML
     ListView<String>clientFilesList;
 
+    @FXML
+    ListView<String>serverFilesList;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Network.start();
+//        Network.sendMsg(new RefreshRequest(new ArrayList<String>(serverFilesList.getItems())));
+
         Thread t = new Thread(() -> {
             try {
                 while (true) {
                     AbstractMessage am = Network.readObject();
+
                     if (am instanceof FileMessage) {
                         FileMessage fm = (FileMessage) am;
                         Files.write(Paths.get("client/client_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
                         refreshLocalFilesList();
+                    }
+                    if (am instanceof RefreshRequest){
+                        RefreshRequest rr = (RefreshRequest)am;
+                        refreshServerFilesList(rr.getList());
                     }
                 }
             } catch (ClassNotFoundException | IOException e) {
@@ -41,6 +53,7 @@ public class MainController implements Initializable {
         t.setDaemon(true);
         t.start();
         refreshLocalFilesList();
+
     }
 
     public void pressOnDownloadBtn(ActionEvent actionEvent) {
@@ -60,6 +73,14 @@ public class MainController implements Initializable {
             }
         });
     }
+
+    public void refreshServerFilesList(List <String> list){
+        updateUI(() -> {
+                serverFilesList.getItems().clear();
+                list.stream().forEach(o -> serverFilesList.getItems().add(o));
+        });
+    }
+
 
     public static void updateUI(Runnable r) {
         if (Platform.isFxApplicationThread()) {
@@ -82,5 +103,10 @@ public class MainController implements Initializable {
                 System.err.println("file not exist");
             }
         }
+    }
+
+    public void pressOnRefreshBtn(ActionEvent actionEvent) {
+        Network.sendMsg(new RefreshRequest(new ArrayList<String>(serverFilesList.getItems())));
+        refreshLocalFilesList();
     }
 }

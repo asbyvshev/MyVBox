@@ -14,6 +14,7 @@
         <TextField fx:id="tfFileName" focusTraversable="false" promptText="Укажите имя файла на сервере, который хотите скачать" HBox.hgrow="ALWAYS" />
         <Button onAction="#pressOnDownloadBtn" text="Скачать" />
         <Button onAction="#pressOnSendBtn" text="Отправить" />
+        <Button onAction="#pressOnRefreshBtn" text="Обновить" />
     </HBox>
     <HBox alignment="CENTER">
         <ListView fx:id="clientFilesList" VBox.vgrow="ALWAYS" />
