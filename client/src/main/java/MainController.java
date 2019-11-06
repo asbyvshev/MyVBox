@@ -19,6 +19,9 @@ public class MainController implements Initializable {
     TextField tfFileName;
 
     @FXML
+    TextField tfFileRename;
+
+    @FXML
     ListView<String>clientFilesList;
 
     @FXML
@@ -56,13 +59,6 @@ public class MainController implements Initializable {
 
     }
 
-    public void pressOnDownloadBtn(ActionEvent actionEvent) {
-        if (tfFileName.getLength() > 0) {
-            Network.sendMsg(new FileRequest(tfFileName.getText()));
-            tfFileName.clear();
-        }
-    }
-
     public void refreshLocalFilesList() {
         updateUI(() -> {
             try {
@@ -81,12 +77,23 @@ public class MainController implements Initializable {
         });
     }
 
+    public void pressOnRefreshBtn(ActionEvent actionEvent) {
+        Network.sendMsg(new RefreshRequest(new ArrayList<String>(serverFilesList.getItems())));
+        refreshLocalFilesList();
+    }
 
     public static void updateUI(Runnable r) {
         if (Platform.isFxApplicationThread()) {
             r.run();
         } else {
             Platform.runLater(r);
+        }
+    }
+
+    public void pressOnDownloadBtn(ActionEvent actionEvent) {
+        if (tfFileName.getLength() > 0) {
+            Network.sendMsg(new FileRequest(FileRequest.Command.DOWNLOAD,tfFileName.getText()));
+            tfFileName.clear();
         }
     }
 
@@ -102,11 +109,21 @@ public class MainController implements Initializable {
             } else {
                 System.err.println("file not exist");
             }
+            tfFileName.clear();
         }
     }
 
-    public void pressOnRefreshBtn(ActionEvent actionEvent) {
-        Network.sendMsg(new RefreshRequest(new ArrayList<String>(serverFilesList.getItems())));
-        refreshLocalFilesList();
+    public void pressOnDeleteBtn(ActionEvent actionEvent) {
+        if (tfFileName.getLength() > 0) {
+            Network.sendMsg(new FileRequest(FileRequest.Command.DELETE,tfFileName.getText()));
+            tfFileName.clear();
+        }
+    }
+
+    public void pressOnRenameBtn(ActionEvent actionEvent) {
+        if (tfFileName.getLength() > 0) {
+            Network.sendMsg(new FileRequest(FileRequest.Command.RENAME,tfFileName.getText(),tfFileRename.getText()));
+            tfFileName.clear();
+        }
     }
 }
