@@ -10,15 +10,22 @@
       style="-fx-background-color: linear-gradient(#fff 0%, #eee 10%, #ddd 90%, #bbb 100%);"
       xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.172-ea"
       fx:controller="MainController">
-    <HBox>
-        <TextField fx:id="tfFileName" focusTraversable="false" promptText="Укажите имя файла на сервере, который хотите скачать" HBox.hgrow="ALWAYS" />
-        <Button onAction="#pressOnDownloadBtn" text="Скачать" />
-        <Button onAction="#pressOnSendBtn" text="Отправить" />
-        <Button onAction="#pressOnRefreshBtn" text="Обновить" />
-    </HBox>
+
     <HBox alignment="CENTER">
         <ListView fx:id="clientFilesList" VBox.vgrow="ALWAYS" />
         <ListView fx:id="serverFilesList" VBox.vgrow="ALWAYS" />
     </HBox>
 
+    <HBox>
+        <TextField fx:id="tfFileName" focusTraversable="false" promptText="Укажите имя файла ..." HBox.hgrow="ALWAYS" />
+        <TextField fx:id="tfFileRename" focusTraversable="false" promptText="Переименовать в ..." HBox.hgrow="ALWAYS" />
+    </HBox>
+
+    <HBox>
+        <Button onAction="#pressOnDownloadBtn" text="Скачать" />
+        <Button onAction="#pressOnSendBtn" text="Отправить" />
+        <Button onAction="#pressOnRenameBtn" text="Переименовать" />
+        <Button onAction="#pressOnDeleteBtn" text="Удалить" />
+        <Button onAction="#pressOnRefreshBtn" text="Обновить" />
+    </HBox>
 </VBox>
