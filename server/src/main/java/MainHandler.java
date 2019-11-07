@@ -29,12 +29,12 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                             break;
                         case DELETE:
                             Files.delete(path);
-                            refreshFileList(ctx,new RefreshRequest(new ArrayList<>()));
+                            refreshFileList(ctx,new ArrayList<>());
                             break;
                         case RENAME:
                             Path pathTarget = Paths.get("server/server_storage/" + fr.getFileRename());
                             Files.move(path,pathTarget);
-                            refreshFileList(ctx,new RefreshRequest(new ArrayList<>()));
+                            refreshFileList(ctx,new ArrayList<>());
                             break;
                         case EMPTY:
                             break;
@@ -47,21 +47,20 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 System.out.println("прислан файл на запись");
                 FileMessage fm = (FileMessage) msg;
                 Files.write(Paths.get("server/server_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
+                refreshFileList(ctx,new ArrayList<>());
             }
             if (msg instanceof RefreshRequest) {
                 System.out.println("запрос на обновление списка файлов");
                 RefreshRequest rr = (RefreshRequest) msg;
-                refreshFileList(ctx, rr);
+                refreshFileList(ctx, rr.getList());
             }
         } finally {
             ReferenceCountUtil.release(msg);
         }
     }
 
-    private void refreshFileList(ChannelHandlerContext ctx, RefreshRequest rr) throws IOException {
-        List<String> serverFilesList = rr.getList();
-
-        System.out.println(serverFilesList.toString());
+    private void refreshFileList(ChannelHandlerContext ctx, List<String> list) throws IOException {
+        List<String> serverFilesList = list;
 
         if (serverFilesList.isEmpty()){
             Files.list(Paths.get("server/server_storage")).map(p -> p.getFileName().toString()).forEach(o -> serverFilesList.add(o));
