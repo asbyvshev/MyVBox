@@ -6,6 +6,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,6 +27,8 @@ public class MainController implements Initializable {
 
     @FXML
     ListView<String>serverFilesList;
+
+    private static final int LIMITER = 5*1024*1024;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -99,10 +102,25 @@ public class MainController implements Initializable {
 
     public void pressOnSendBtn(ActionEvent actionEvent) {
         if (tfFileName.getLength() > 0) {
-            if (Files.exists(Paths.get("client/client_storage/" + tfFileName.getText()))) {
+            String filePath = "client/client_storage/" + tfFileName.getText();
+            if (Files.exists(Paths.get(filePath))) {
+
                 try {
-                    Network.sendMsg(new FileMessage(Paths.get("client/client_storage/" + tfFileName.getText())));
-                    System.out.println("send msg");
+                    long fileSize = Files.size(Paths.get(filePath));
+
+                    if (LIMITER >= fileSize) {
+                        Network.sendMsg(new FileMessage(Paths.get(filePath)));
+                        System.out.println("send msg size - " + fileSize);
+                    } else {
+                        RandomAccessFile file = new RandomAccessFile(filePath,"r");
+                        String partFileName = filePath + ".part";
+                        for (int i = 0; i < fileSize ; i++) { // описваем в цикле вычитку части байт из файла и отправку части на сервер
+
+                        }
+                    }
+
+
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
