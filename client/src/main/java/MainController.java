@@ -30,7 +30,7 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Network.start();
-//        Network.sendMsg(new RefreshRequest(new ArrayList<String>(serverFilesList.getItems())));
+//        Network.sendMsg(new RefreshRequest(new ArrayList<String>(serverFilesList.getItems()))); - запихнуть в авторизацию
 
         Thread t = new Thread(() -> {
             try {
