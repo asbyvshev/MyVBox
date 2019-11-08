@@ -28,6 +28,12 @@ public class FileMessage extends AbstractMessage {
         this.data = data;
     }
 
+    public FileMessage(Path path) throws IOException {
+        filename = path.getFileName().toString();
+        data = Files.readAllBytes(path);
+
+    }
+
     public FileMessage(Path path, int partNumber, int partsCount) throws IOException {
         filename = path.getFileName().toString();
         data = Files.readAllBytes(path);
