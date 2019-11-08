@@ -33,18 +33,18 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                     switch (fr.getCommand()){
                         case DOWNLOAD:
                             if (Files.size(path) > LIMITER){
-                                int partCount = new Long(Files.size(path) / LIMITER).intValue();
+                                int partsCount = new Long(Files.size(path) / LIMITER).intValue();
                                 if (Files.size(path) % LIMITER != 0) {
-                                    partCount++;
+                                    partsCount++;
                                 }
                                 FileMessage fm = new FileMessage(fr.getFilename() + ".part",-1,
-                                        partCount, new byte[LIMITER]);
+                                        partsCount, new byte[LIMITER]);
                                 FileInputStream in = new FileInputStream(String.valueOf(path));
-                                for (int i = 0; i < partCount; i++) {
-                                    int readedBytes = in.read(fm.getData());
+                                for (int i = 0; i < partsCount; i++) {
+                                    int readBytes = in.read(fm.getData());
                                     fm.setPartNumber(i + 1);
-                                    if (readedBytes < LIMITER) {
-                                        fm.setData(Arrays.copyOfRange(fm.getData(), 0, readedBytes));
+                                    if (readBytes < LIMITER) {
+                                        fm.setData(Arrays.copyOfRange(fm.getData(), 0, readBytes));
                                     }
                                     ChannelFuture channelFuture = ctx.writeAndFlush(fm);
                                     System.out.println("Отправлена часть #" + (i + 1));
