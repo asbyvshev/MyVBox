@@ -5,6 +5,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.URL;
@@ -14,6 +15,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.CountDownLatch;
 
 public class MainController implements Initializable {
     @FXML
@@ -33,6 +35,7 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Network.start();
+        CountDownLatch cdl = new CountDownLatch(1);
 //        Network.sendMsg(new RefreshRequest(new ArrayList<String>(serverFilesList.getItems()))); - запихнуть в авторизацию
 
         Thread t = new Thread(() -> {
@@ -41,9 +44,26 @@ public class MainController implements Initializable {
                     AbstractMessage am = Network.readObject();
 
                     if (am instanceof FileMessage) {
+
                         FileMessage fm = (FileMessage) am;
+
+                        if (fm.getPartsCount()!= 0){
+                            boolean append = true;
+                            if (fm.getPartNumber() == 1) {
+                                append = false;
+                            }
+                            System.out.println(fm.getPartNumber() + " / " + fm.getPartsCount());
+                            FileOutputStream fos = new FileOutputStream(fm.getFilename(), append);
+                            fos.write(fm.getData());
+                            fos.close();
+                            if (fm.getPartNumber() == fm.getPartsCount()) {
+                                cdl.countDown();
+                            }
+                        }
+
                         Files.write(Paths.get("client/client_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
                         refreshLocalFilesList();
+
                     }
                     if (am instanceof RefreshRequest){
                         RefreshRequest rr = (RefreshRequest)am;
@@ -58,6 +78,11 @@ public class MainController implements Initializable {
         });
         t.setDaemon(true);
         t.start();
+        try {
+            cdl.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         refreshLocalFilesList();
 
     }
