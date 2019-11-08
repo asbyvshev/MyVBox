@@ -34,9 +34,9 @@ public class FileMessage extends AbstractMessage {
 
     }
 
-    public FileMessage(Path path, int partNumber, int partsCount) throws IOException {
+    public FileMessage(Path path, int partNumber, int partsCount, byte [] data) throws IOException {
         filename = path.getFileName().toString();
-        data = Files.readAllBytes(path);
+        this.data = data;
         this.partNumber = partNumber;
         this.partsCount = partsCount;
     }
