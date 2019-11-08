@@ -56,7 +56,7 @@ public class MainController implements Initializable {
                                 append = false;
                             }
                             System.out.println(fm.getPartNumber() + " / " + fm.getPartsCount());
-                            FileOutputStream fos = new FileOutputStream(fm.getFilename(), append);
+                            FileOutputStream fos = new FileOutputStream("client/client_storage/" + fm.getFilename(), append);
                             fos.write(fm.getData());
                             fos.close();
 //                            if (fm.getPartNumber() == fm.getPartsCount()) {
