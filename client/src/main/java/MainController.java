@@ -1,3 +1,4 @@
+import io.netty.channel.ChannelFuture;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -5,6 +6,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -13,9 +15,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.concurrent.CountDownLatch;
+
 
 public class MainController implements Initializable {
     @FXML
@@ -35,7 +38,7 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Network.start();
-        CountDownLatch cdl = new CountDownLatch(1);
+
 //        Network.sendMsg(new RefreshRequest(new ArrayList<String>(serverFilesList.getItems()))); - запихнуть в авторизацию
 
         Thread t = new Thread(() -> {
@@ -56,9 +59,9 @@ public class MainController implements Initializable {
                             FileOutputStream fos = new FileOutputStream(fm.getFilename(), append);
                             fos.write(fm.getData());
                             fos.close();
-                            if (fm.getPartNumber() == fm.getPartsCount()) {
-                                cdl.countDown();
-                            }
+//                            if (fm.getPartNumber() == fm.getPartsCount()) {
+//                                  добавить переименование в нормально название без ".part"
+//                            }
                         }
 
                         Files.write(Paths.get("client/client_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
@@ -78,11 +81,6 @@ public class MainController implements Initializable {
         });
         t.setDaemon(true);
         t.start();
-        try {
-            cdl.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         refreshLocalFilesList();
 
     }
@@ -133,17 +131,11 @@ public class MainController implements Initializable {
                 try {
                     long fileSize = Files.size(Paths.get(filePath));
 
-                    if (LIMITER >= fileSize) {
-                        Network.sendMsg(new FileMessage(Paths.get(filePath)));
-                        System.out.println("send msg size - " + fileSize);
-                    } else {
-                        RandomAccessFile file = new RandomAccessFile(filePath,"r");
-                        String partFileName = filePath + ".part";
-                        for (int i = 0; i < fileSize ; i++) { // описваем в цикле вычитку части байт из файла и отправку части на сервер
-
-                        }
+                    if (fileSize > LIMITER) {
+//                        sendBigFile(filePath,fileSize);
                     }
 
+                    Network.sendMsg(new FileMessage(Paths.get(filePath)));
 
 
                 } catch (IOException e) {
@@ -154,6 +146,29 @@ public class MainController implements Initializable {
             }
             tfFileName.clear();
         }
+    }
+
+    private void sendBigFile(String filePath, long fileSize) throws IOException {
+
+            int partsCount = new Long(fileSize / LIMITER).intValue();
+            if (fileSize % LIMITER != 0) {
+                partsCount++;
+            }
+            FileMessage fm = new FileMessage(tfFileName.getText() + ".part",-1,
+                    partsCount, new byte[LIMITER]);
+            FileInputStream in = new FileInputStream(filePath);
+            for (int i = 0; i < partsCount; i++) {
+                int readBytes = in.read(fm.getData());
+                fm.setPartNumber(i + 1);
+                if (readBytes < LIMITER) {
+                    fm.setData(Arrays.copyOfRange(fm.getData(), 0, readBytes));
+                }
+                Network.sendMsg(fm);
+//                ChannelFuture channelFuture = ctx.writeAndFlush(fm);
+                System.out.println("Отправлена часть #" + (i + 1));
+            }
+            in.close();
+
     }
 
     public void pressOnDeleteBtn(ActionEvent actionEvent) {
