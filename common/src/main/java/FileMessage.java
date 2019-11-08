@@ -16,6 +16,10 @@ public class FileMessage extends AbstractMessage {
         return partNumber;
     }
 
+    public void setPartNumber(int partNumber) {
+        this.partNumber = partNumber;
+    }
+
     public int getPartsCount() {
         return partsCount;
     }
@@ -34,8 +38,8 @@ public class FileMessage extends AbstractMessage {
 
     }
 
-    public FileMessage(Path path, int partNumber, int partsCount, byte [] data) throws IOException {
-        filename = path.getFileName().toString();
+    public FileMessage(String partFileName, int partNumber, int partsCount, byte [] data) throws IOException {
+        filename = partFileName;
         this.data = data;
         this.partNumber = partNumber;
         this.partsCount = partsCount;
