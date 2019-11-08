@@ -1,19 +1,26 @@
 
 
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class MainHandler extends ChannelInboundHandlerAdapter {
+
+    private static final int LIMITER = 5 * 1024 * 1024;
+
     private List<String> serverFilesList;
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         try {
@@ -25,6 +32,26 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 if (Files.exists(path)) {
                     switch (fr.getCommand()){
                         case DOWNLOAD:
+                            if (Files.size(path) > LIMITER){
+                                int partCount = new Long(Files.size(path) / LIMITER).intValue();
+                                if (Files.size(path) % LIMITER != 0) {
+                                    partCount++;
+                                }
+                                FileMessage fm = new FileMessage(fr.getFilename() + ".part",-1,
+                                        partCount, new byte[LIMITER]);
+                                FileInputStream in = new FileInputStream(String.valueOf(path));
+                                for (int i = 0; i < partCount; i++) {
+                                    int readedBytes = in.read(fm.getData());
+                                    fm.setPartNumber(i + 1);
+                                    if (readedBytes < LIMITER) {
+                                        fm.setData(Arrays.copyOfRange(fm.getData(), 0, readedBytes));
+                                    }
+                                    ChannelFuture channelFuture = ctx.writeAndFlush(fm);
+                                    System.out.println("Отправлена часть #" + (i + 1));
+                                }
+                                in.close();
+                                break;
+                            }
                             FileMessage fm = new FileMessage(path);
                             ctx.writeAndFlush(fm);
                             break;
