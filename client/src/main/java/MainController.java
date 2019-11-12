@@ -103,9 +103,9 @@ public class MainController implements Initializable {
 
                     if (fileSize > LIMITER) {
                         sendBigFile(filePath,fileSize);
+                    } else {
+                        Network.sendMsg(new FileMessage(Paths.get(filePath)));
                     }
-
-                    Network.sendMsg(new FileMessage(Paths.get(filePath)));
 
                 } catch (IOException e) {
                     e.printStackTrace();
