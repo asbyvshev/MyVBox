@@ -4,12 +4,17 @@ import java.nio.file.Path;
 
 public class FileMessage extends AbstractMessage {
     private String filename;
+    private long fileTotalSize;
     private int partNumber;
     private int partsCount;
     private byte[] data;
 
     public String getFilename() {
         return filename;
+    }
+
+    public long getFileTotalSize() {
+        return fileTotalSize;
     }
 
     public int getPartNumber() {
@@ -35,11 +40,11 @@ public class FileMessage extends AbstractMessage {
     public FileMessage(Path path) throws IOException {
         filename = path.getFileName().toString();
         data = Files.readAllBytes(path);
-
     }
 
-    public FileMessage(String partFileName, int partNumber, int partsCount, byte [] data) throws IOException {
+    public FileMessage(String partFileName, long fileTotalSize, int partNumber, int partsCount, byte [] data) throws IOException {
         filename = partFileName;
+        this.fileTotalSize = fileTotalSize;
         this.data = data;
         this.partNumber = partNumber;
         this.partsCount = partsCount;
