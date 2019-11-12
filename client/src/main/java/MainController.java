@@ -9,7 +9,6 @@ import javafx.scene.control.TextField;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -35,6 +34,8 @@ public class MainController implements Initializable {
 
     private static final int LIMITER = 5*1024*1024;
 
+    private String root = "client/client_storage/";
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Network.start();
@@ -56,17 +57,18 @@ public class MainController implements Initializable {
                                 append = false;
                             }
                             System.out.println(fm.getPartNumber() + " / " + fm.getPartsCount());
-                            FileOutputStream fos = new FileOutputStream("client/client_storage/" + fm.getFilename(), append);
+                            FileOutputStream fos = new FileOutputStream(root + fm.getFilename(), append);
                             fos.write(fm.getData());
                             fos.close();
-//                            if (fm.getPartNumber() == fm.getPartsCount()) {
-//                                  добавить переименование в нормально название без ".part"
-//                            }
+                            if (fm.getPartNumber() == fm.getPartsCount()
+                                    && fm.getFileTotalSize() == Files.size(Paths.get(root + fm.getFilename()))) {
+                                String fileName = root + fm.getFilename().substring(0,fm.getFilename().length() - 5);
+                                Files.move(Paths.get(root + fm.getFilename()),Paths.get(fileName));
+                            }
+                        } else {
+                            Files.write(Paths.get(root + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
+                            refreshLocalFilesList();
                         }
-
-                        Files.write(Paths.get("client/client_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
-                        refreshLocalFilesList();
-
                     }
                     if (am instanceof RefreshRequest){
                         RefreshRequest rr = (RefreshRequest)am;
@@ -89,7 +91,7 @@ public class MainController implements Initializable {
         updateUI(() -> {
             try {
                 clientFilesList.getItems().clear();
-                Files.list(Paths.get("client/client_storage")).map(p -> p.getFileName().toString()).forEach(o -> clientFilesList.getItems().add(o));
+                Files.list(Paths.get(root)).map(p -> p.getFileName().toString()).forEach(o -> clientFilesList.getItems().add(o));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -125,7 +127,7 @@ public class MainController implements Initializable {
 
     public void pressOnSendBtn(ActionEvent actionEvent) {
         if (tfFileName.getLength() > 0) {
-            String filePath = "client/client_storage/" + tfFileName.getText();
+            String filePath = root + tfFileName.getText();
             if (Files.exists(Paths.get(filePath))) {
 
                 try {
@@ -154,7 +156,7 @@ public class MainController implements Initializable {
             if (fileSize % LIMITER != 0) {
                 partsCount++;
             }
-            FileMessage fm = new FileMessage(tfFileName.getText() + ".part",-1,
+            FileMessage fm = new FileMessage(tfFileName.getText() + ".part",fileSize,-1,
                     partsCount, new byte[LIMITER]);
             FileInputStream in = new FileInputStream(filePath);
             for (int i = 0; i < partsCount; i++) {
@@ -168,7 +170,6 @@ public class MainController implements Initializable {
                 System.out.println("Отправлена часть #" + (i + 1));
             }
             in.close();
-
     }
 
     public void pressOnDeleteBtn(ActionEvent actionEvent) {
