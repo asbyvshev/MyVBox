@@ -20,6 +20,8 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
     private static final int LIMITER = 5 * 1024 * 1024;
 
     private List<String> serverFilesList;
+    private String root = "server/server_storage/";
+    private long fileTotalSize;
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -28,16 +30,17 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
             if (msg instanceof FileRequest) {
                 System.out.println("запрос на действий с файлом");
                 FileRequest fr = (FileRequest) msg;
-                Path path = Paths.get("server/server_storage/" + fr.getFilename());
+                Path path = Paths.get(root + fr.getFilename());
+                fileTotalSize = Files.size(path);
                 if (Files.exists(path)) {
                     switch (fr.getCommand()){
                         case DOWNLOAD:
-                            if (Files.size(path) > LIMITER){
-                                int partsCount = new Long(Files.size(path) / LIMITER).intValue();
-                                if (Files.size(path) % LIMITER != 0) {
+                            if (fileTotalSize > LIMITER){
+                                int partsCount = new Long(fileTotalSize / LIMITER).intValue();
+                                if (fileTotalSize % LIMITER != 0) {
                                     partsCount++;
                                 }
-                                FileMessage fm = new FileMessage(fr.getFilename() + ".part",-1,
+                                FileMessage fm = new FileMessage(fr.getFilename() + ".part",fileTotalSize,-1,
                                         partsCount, new byte[LIMITER]);
                                 FileInputStream in = new FileInputStream(String.valueOf(path));
                                 for (int i = 0; i < partsCount; i++) {
@@ -60,13 +63,12 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                             refreshFileList(ctx);
                             break;
                         case RENAME:
-                            Path pathTarget = Paths.get("server/server_storage/" + fr.getFileRename());
+                            Path pathTarget = Paths.get(root + fr.getFileRename());
                             Files.move(path,pathTarget);
                             refreshFileList(ctx);
                             break;
                         case EMPTY:
                             break;
-
                     }
 
                 }
@@ -74,7 +76,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
             if (msg instanceof FileMessage) {
                 System.out.println("прислан файл на запись");
                 FileMessage fm = (FileMessage) msg;
-                Files.write(Paths.get("server/server_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
+                Files.write(Paths.get(root + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
                 refreshFileList(ctx);
             }
             if (msg instanceof RefreshRequest) {
@@ -87,7 +89,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void refreshFileList(ChannelHandlerContext ctx) throws IOException {
-        serverFilesList = Files.list(Paths.get("server/server_storage"))
+        serverFilesList = Files.list(Paths.get(root))
                 .map(p -> p.getFileName().toString()).collect(Collectors.toList());
         ctx.writeAndFlush(new RefreshRequest(serverFilesList));
     }
@@ -97,6 +99,4 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
         cause.printStackTrace();
         ctx.close();
     }
-
-
 }
