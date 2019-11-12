@@ -61,6 +61,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 FileMessage fm = (FileMessage) msg;
                 if (fm.getPartsCount()!= 0){
                     saveBigFile(fm);
+                    refreshFileList(ctx);
                 } else {
                     Files.write(Paths.get(root + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
                     refreshFileList(ctx);
