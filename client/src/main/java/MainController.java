@@ -1,4 +1,3 @@
-import io.netty.channel.ChannelFuture;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -165,7 +164,6 @@ public class MainController implements Initializable {
                     fm.setData(Arrays.copyOfRange(fm.getData(), 0, readBytes));
                 }
                 Network.sendMsg(fm);
-//                ChannelFuture channelFuture = ctx.writeAndFlush(fm);
                 System.out.println("Отправлена часть #" + (i + 1));
             }
             in.close();
