@@ -51,19 +51,7 @@ public class MainController implements Initializable {
                         FileMessage fm = (FileMessage) am;
 
                         if (fm.getPartsCount()!= 0){
-                            boolean append = true;
-                            if (fm.getPartNumber() == 1) {
-                                append = false;
-                            }
-                            System.out.println(fm.getPartNumber() + " / " + fm.getPartsCount());
-                            FileOutputStream fos = new FileOutputStream(root + fm.getFilename(), append);
-                            fos.write(fm.getData());
-                            fos.close();
-                            if (fm.getPartNumber() == fm.getPartsCount()
-                                    && fm.getFileTotalSize() == Files.size(Paths.get(root + fm.getFilename()))) {
-                                String fileName = root + fm.getFilename().substring(0,fm.getFilename().length() - 5);
-                                Files.move(Paths.get(root + fm.getFilename()),Paths.get(fileName));
-                            }
+                            saveBigFile(fm);
                         } else {
                             Files.write(Paths.get(root + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
                             refreshLocalFilesList();
@@ -83,25 +71,6 @@ public class MainController implements Initializable {
         t.setDaemon(true);
         t.start();
         refreshLocalFilesList();
-
-    }
-
-    public void refreshLocalFilesList() {
-        updateUI(() -> {
-            try {
-                clientFilesList.getItems().clear();
-                Files.list(Paths.get(root)).map(p -> p.getFileName().toString()).forEach(o -> clientFilesList.getItems().add(o));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    public void refreshServerFilesList(List <String> list){
-        updateUI(() -> {
-                serverFilesList.getItems().clear();
-                list.stream().forEach(o -> serverFilesList.getItems().add(o));
-        });
     }
 
     public void pressOnRefreshBtn(ActionEvent actionEvent) {
@@ -148,27 +117,6 @@ public class MainController implements Initializable {
         }
     }
 
-    private void sendBigFile(String filePath, long fileSize) throws IOException {
-
-            int partsCount = new Long(fileSize / LIMITER).intValue();
-            if (fileSize % LIMITER != 0) {
-                partsCount++;
-            }
-            FileMessage fm = new FileMessage(tfFileName.getText() + ".part",fileSize,-1,
-                    partsCount, new byte[LIMITER]);
-            FileInputStream in = new FileInputStream(filePath);
-            for (int i = 0; i < partsCount; i++) {
-                int readBytes = in.read(fm.getData());
-                fm.setPartNumber(i + 1);
-                if (readBytes < LIMITER) {
-                    fm.setData(Arrays.copyOfRange(fm.getData(), 0, readBytes));
-                }
-                Network.sendMsg(fm);
-                System.out.println("Отправлена часть #" + (i + 1));
-            }
-            in.close();
-    }
-
     public void pressOnDeleteBtn(ActionEvent actionEvent) {
         if (tfFileName.getLength() > 0) {
             Network.sendMsg(new FileRequest(FileRequest.Command.DELETE,tfFileName.getText()));
@@ -181,5 +129,60 @@ public class MainController implements Initializable {
             Network.sendMsg(new FileRequest(FileRequest.Command.RENAME,tfFileName.getText(),tfFileRename.getText()));
             tfFileName.clear();
         }
+    }
+
+    private void sendBigFile(String filePath, long fileSize) throws IOException {
+
+        int partsCount = new Long(fileSize / LIMITER).intValue();
+        if (fileSize % LIMITER != 0) {
+            partsCount++;
+        }
+        FileMessage fm = new FileMessage(tfFileName.getText() + ".part",fileSize,-1,
+                partsCount, new byte[LIMITER]);
+        FileInputStream in = new FileInputStream(filePath);
+        for (int i = 0; i < partsCount; i++) {
+            int readBytes = in.read(fm.getData());
+            fm.setPartNumber(i + 1);
+            if (readBytes < LIMITER) {
+                fm.setData(Arrays.copyOfRange(fm.getData(), 0, readBytes));
+            }
+            Network.sendMsg(fm);
+            System.out.println("Отправлена часть #" + (i + 1));
+        }
+        in.close();
+    }
+
+    private void saveBigFile(FileMessage fm) throws IOException {
+        boolean append = true;
+        if (fm.getPartNumber() == 1) {
+            append = false;
+        }
+        System.out.println(fm.getPartNumber() + " / " + fm.getPartsCount());
+        FileOutputStream fos = new FileOutputStream(root + fm.getFilename(), append);
+        fos.write(fm.getData());
+        fos.close();
+        if (fm.getPartNumber() == fm.getPartsCount()
+                && fm.getFileTotalSize() == Files.size(Paths.get(root + fm.getFilename()))) {
+            String fileName = root + fm.getFilename().substring(0,fm.getFilename().length() - 5);
+            Files.move(Paths.get(root + fm.getFilename()),Paths.get(fileName));
+        }
+    }
+
+    private void refreshLocalFilesList() {
+        updateUI(() -> {
+            try {
+                clientFilesList.getItems().clear();
+                Files.list(Paths.get(root)).map(p -> p.getFileName().toString()).forEach(o -> clientFilesList.getItems().add(o));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void refreshServerFilesList(List <String> list){
+        updateUI(() -> {
+            serverFilesList.getItems().clear();
+            list.stream().forEach(o -> serverFilesList.getItems().add(o));
+        });
     }
 }
