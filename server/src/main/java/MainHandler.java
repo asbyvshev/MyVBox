@@ -21,7 +21,6 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
 
     private List<String> serverFilesList;
     private String root = "server/server_storage/";
-    private long fileTotalSize;
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -31,11 +30,10 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 System.out.println("запрос на действий с файлом");
                 FileRequest fr = (FileRequest) msg;
                 Path path = Paths.get(root + fr.getFilename());
-                fileTotalSize = Files.size(path);
                 if (Files.exists(path)) {
                     switch (fr.getCommand()){
                         case DOWNLOAD:
-                            if (fileTotalSize > LIMITER){
+                            if (Files.size(path) > LIMITER){
                                 sendBigFile(ctx, fr, path);
                                 break;
                             }
@@ -73,6 +71,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void sendBigFile(ChannelHandlerContext ctx, FileRequest fr, Path path) throws IOException {
+        long fileTotalSize = Files.size(path);
         int partsCount = new Long(fileTotalSize / LIMITER).intValue();
         if (fileTotalSize % LIMITER != 0) {
             partsCount++;
