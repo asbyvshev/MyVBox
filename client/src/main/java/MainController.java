@@ -131,14 +131,13 @@ public class MainController implements Initializable {
             if (Files.exists(Paths.get(filePath))) {
 
                 try {
-                    long fileSize = Files.size(Paths.get(filePath));
+                   long fileSize = Files.size(Paths.get(filePath));
 
                     if (fileSize > LIMITER) {
-//                        sendBigFile(filePath,fileSize);
+                        sendBigFile(filePath,fileSize);
                     }
 
                     Network.sendMsg(new FileMessage(Paths.get(filePath)));
-
 
                 } catch (IOException e) {
                     e.printStackTrace();
