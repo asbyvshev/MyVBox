@@ -6,6 +6,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,8 +59,12 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
             if (msg instanceof FileMessage) {
                 System.out.println("прислан файл на запись");
                 FileMessage fm = (FileMessage) msg;
-                Files.write(Paths.get(root + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
-                refreshFileList(ctx);
+                if (fm.getPartsCount()!= 0){
+                    saveBigFile(fm);
+                } else {
+                    Files.write(Paths.get(root + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
+                    refreshFileList(ctx);
+                }
             }
             if (msg instanceof RefreshRequest) {
                 System.out.println("запрос на обновление списка файлов");
@@ -68,6 +73,12 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
         } finally {
             ReferenceCountUtil.release(msg);
         }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        cause.printStackTrace();
+        ctx.close();
     }
 
     private void sendBigFile(ChannelHandlerContext ctx, FileRequest fr, Path path) throws IOException {
@@ -97,9 +108,19 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
         ctx.writeAndFlush(new RefreshRequest(serverFilesList));
     }
 
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        cause.printStackTrace();
-        ctx.close();
+    private void saveBigFile(FileMessage fm) throws IOException {
+        boolean append = true;
+        if (fm.getPartNumber() == 1) {
+            append = false;
+        }
+        System.out.println(fm.getPartNumber() + " / " + fm.getPartsCount());
+        FileOutputStream fos = new FileOutputStream(root + fm.getFilename(), append);
+        fos.write(fm.getData());
+        fos.close();
+        if (fm.getPartNumber() == fm.getPartsCount()
+                && fm.getFileTotalSize() == Files.size(Paths.get(root + fm.getFilename()))) {
+            String fileName = root + fm.getFilename().substring(0,fm.getFilename().length() - 5);
+            Files.move(Paths.get(root + fm.getFilename()),Paths.get(fileName));
+        }
     }
 }
