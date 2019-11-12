@@ -36,23 +36,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                     switch (fr.getCommand()){
                         case DOWNLOAD:
                             if (fileTotalSize > LIMITER){
-                                int partsCount = new Long(fileTotalSize / LIMITER).intValue();
-                                if (fileTotalSize % LIMITER != 0) {
-                                    partsCount++;
-                                }
-                                FileMessage fm = new FileMessage(fr.getFilename() + ".part",fileTotalSize,-1,
-                                        partsCount, new byte[LIMITER]);
-                                FileInputStream in = new FileInputStream(String.valueOf(path));
-                                for (int i = 0; i < partsCount; i++) {
-                                    int readBytes = in.read(fm.getData());
-                                    fm.setPartNumber(i + 1);
-                                    if (readBytes < LIMITER) {
-                                        fm.setData(Arrays.copyOfRange(fm.getData(), 0, readBytes));
-                                    }
-                                    ChannelFuture channelFuture = ctx.writeAndFlush(fm);
-                                    System.out.println("Отправлена часть #" + (i + 1));
-                                }
-                                in.close();
+                                sendBigFile(ctx, fr, path);
                                 break;
                             }
                             FileMessage fm = new FileMessage(path);
@@ -86,6 +70,26 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
         } finally {
             ReferenceCountUtil.release(msg);
         }
+    }
+
+    private void sendBigFile(ChannelHandlerContext ctx, FileRequest fr, Path path) throws IOException {
+        int partsCount = new Long(fileTotalSize / LIMITER).intValue();
+        if (fileTotalSize % LIMITER != 0) {
+            partsCount++;
+        }
+        FileMessage fm = new FileMessage(fr.getFilename() + ".part",fileTotalSize,-1,
+                partsCount, new byte[LIMITER]);
+        FileInputStream in = new FileInputStream(String.valueOf(path));
+        for (int i = 0; i < partsCount; i++) {
+            int readBytes = in.read(fm.getData());
+            fm.setPartNumber(i + 1);
+            if (readBytes < LIMITER) {
+                fm.setData(Arrays.copyOfRange(fm.getData(), 0, readBytes));
+            }
+            ChannelFuture channelFuture = ctx.writeAndFlush(fm);
+            System.out.println("Отправлена часть #" + (i + 1));
+        }
+        in.close();
     }
 
     private void refreshFileList(ChannelHandlerContext ctx) throws IOException {
