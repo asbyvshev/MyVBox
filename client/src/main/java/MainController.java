@@ -97,7 +97,6 @@ public class MainController implements Initializable {
         if (tfFileName.getLength() > 0) {
             String filePath = root + tfFileName.getText();
             if (Files.exists(Paths.get(filePath))) {
-
                 try {
                    long fileSize = Files.size(Paths.get(filePath));
 
@@ -106,7 +105,6 @@ public class MainController implements Initializable {
                     } else {
                         Network.sendMsg(new FileMessage(Paths.get(filePath)));
                     }
-
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
