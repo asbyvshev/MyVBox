@@ -13,24 +13,22 @@
       fx:controller="MainController">
 
     <HBox fx:id="upperPanel">
-
-        <TextField HBox.hgrow="ALWAYS" promptText="Логин" fx:id="loginfield"/>
-        <PasswordField promptText="Пароль" fx:id="passwordField" onAction="#tryToAuth"/>
-        <Button text="Авторизоваться" onAction="#tryToAuth" />
-
+        <TextField HBox.hgrow="ALWAYS" promptText="Логин" fx:id="loginField" alignment="CENTER"/>
+        <PasswordField promptText="Пароль" fx:id="passwordField" onAction="#tryToAuth" alignment="CENTER"/>
+        <Button text="Авторизоваться" onAction="#tryToAuth" alignment="CENTER" />
     </HBox>
 
-    <HBox alignment="CENTER">
+    <HBox fx:id="listPanel" alignment="CENTER" managed="false" visible="false">
         <ListView fx:id="clientFilesList" VBox.vgrow="ALWAYS" />
         <ListView fx:id="serverFilesList" VBox.vgrow="ALWAYS" />
     </HBox>
 
-    <HBox>
+    <HBox fx:id="tfFilePanel" managed="false" visible="false">
         <TextField fx:id="tfFileName" focusTraversable="false" promptText="Укажите имя файла ..." HBox.hgrow="ALWAYS" />
         <TextField fx:id="tfFileRename" focusTraversable="false" promptText="Переименовать в ..." HBox.hgrow="ALWAYS" />
     </HBox>
 
-    <HBox>
+    <HBox fx:id="buttonPanel" managed="false" visible="false">
         <Button onAction="#pressOnDownloadBtn" text="Скачать" />
         <Button onAction="#pressOnSendBtn" text="Отправить" />
         <Button onAction="#pressOnRenameBtn" text="Переименовать" />
