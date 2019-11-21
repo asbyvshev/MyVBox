@@ -26,7 +26,6 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         try {
-//            System.out.println("Client connect");
             if (msg instanceof FileRequest) {
                 System.out.println("запрос на действий с файлом");
                 FileRequest fr = (FileRequest) msg;
