@@ -21,6 +21,8 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
                     authorization = true;
                    AuthRequest authRequest = new AuthRequest(authorization,ar.getLogin(),ar.getPassword(),"client");
                     ctx.writeAndFlush(authRequest);
+                    RefreshRequest rr = new RefreshRequest(null);
+                    ctx.fireChannelRead(rr);
                 } else {
                     System.out.println("Неверные логин/пароль");
                     AuthRequest authRequest = new AuthRequest(authorization);
