@@ -51,15 +51,4 @@ public class Network {
         Object obj = in.readObject();
         return (AbstractMessage) obj;
     }
-
-    public void tryToAuth() {
-//        connect();
-//        try {
-//            out.writeUTF("/auth " + loginfield.getText() + " " + passwordField.getText());
-//            loginfield.clear();
-//            passwordField.clear();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-    }
 }

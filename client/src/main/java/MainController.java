@@ -35,17 +35,22 @@ public class MainController implements Initializable {
 
     private String root = "client/client_storage/";
 
+    private boolean authorization = false;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        Network.start();
-
-//        Network.sendMsg(new RefreshRequest(new ArrayList<String>(serverFilesList.getItems()))); - запихнуть в авторизацию
+        Authorization.tryToAuth("log","pass");
 
         Thread t = new Thread(() -> {
             try {
                 while (true) {
                     AbstractMessage am = Network.readObject();
-
+                    if (am instanceof AuthRequest){
+                        AuthRequest ar = (AuthRequest) am;
+                        if (ar.isAuthorization()){
+                            // меня внешний вид окна клиента
+                        }
+                    }
                     if (am instanceof FileMessage) {
 
                         FileMessage fm = (FileMessage) am;
