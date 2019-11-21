@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 
-public class MainController implements Initializable {
+public class MainController {
     @FXML
     TextField tfFileName;
 
@@ -35,11 +35,28 @@ public class MainController implements Initializable {
 
     private String root = "client/client_storage/";
 
-    private boolean authorization = false;
+    private boolean isAuthorized;
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        Authorization.tryToAuth("log","pass");
+    public void setAuthohorized(boolean isAuthorized) {
+        this.isAuthorized = isAuthorized;
+        if (!isAuthorized) {
+            upperPanel.setVisible(true);
+            upperPanel.setManaged(true);
+            bottomPanel.setVisible(false);
+            bottomPanel.setManaged(false);
+            clientList.setVisible(false);
+            clientList.setManaged(false);
+        } else {
+            upperPanel.setVisible(false);
+            upperPanel.setManaged(false);
+            bottomPanel.setVisible(true);
+            bottomPanel.setManaged(true);
+            clientList.setVisible(true);
+            clientList.setManaged(true);
+        }
+    }
+
+    public void connect() {
 
         Thread t = new Thread(() -> {
             try {
@@ -187,5 +204,9 @@ public class MainController implements Initializable {
             serverFilesList.getItems().clear();
             list.stream().forEach(o -> serverFilesList.getItems().add(o));
         });
+    }
+
+    public void tryToAuth(ActionEvent actionEvent) {
+        Authorization.tryToAuth("log","pass");
     }
 }
