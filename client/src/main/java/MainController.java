@@ -1,14 +1,16 @@
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
+
 import javafx.scene.control.ListView;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URL;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -26,6 +28,24 @@ public class MainController {
     TextField tfFileRename;
 
     @FXML
+    HBox upperPanel;
+
+    @FXML
+    HBox buttonPanel;
+
+    @FXML
+    HBox listPanel;
+
+    @FXML
+    HBox tfFilePanel;
+
+    @FXML
+    TextField loginField;
+
+    @FXML
+    PasswordField passwordField;
+
+    @FXML
     ListView<String>clientFilesList;
 
     @FXML
@@ -37,22 +57,26 @@ public class MainController {
 
     private boolean isAuthorized;
 
-    public void setAuthohorized(boolean isAuthorized) {
+    public void setAuthorized(boolean isAuthorized) {
         this.isAuthorized = isAuthorized;
         if (!isAuthorized) {
             upperPanel.setVisible(true);
             upperPanel.setManaged(true);
-            bottomPanel.setVisible(false);
-            bottomPanel.setManaged(false);
-            clientList.setVisible(false);
-            clientList.setManaged(false);
+            buttonPanel.setVisible(false);
+            buttonPanel.setManaged(false);
+            listPanel.setVisible(false);
+            listPanel.setManaged(false);
+            tfFilePanel.setVisible(false);
+            tfFilePanel.setManaged(false);
         } else {
             upperPanel.setVisible(false);
             upperPanel.setManaged(false);
-            bottomPanel.setVisible(true);
-            bottomPanel.setManaged(true);
-            clientList.setVisible(true);
-            clientList.setManaged(true);
+            buttonPanel.setVisible(true);
+            buttonPanel.setManaged(true);
+            listPanel.setVisible(true);
+            listPanel.setManaged(true);
+            tfFilePanel.setVisible(true);
+            tfFilePanel.setManaged(true);
         }
     }
 
@@ -65,7 +89,7 @@ public class MainController {
                     if (am instanceof AuthRequest){
                         AuthRequest ar = (AuthRequest) am;
                         if (ar.isAuthorization()){
-                            // меня внешний вид окна клиента
+                            setAuthorized(ar.isAuthorization());
                         }
                     }
                     if (am instanceof FileMessage) {
@@ -207,6 +231,9 @@ public class MainController {
     }
 
     public void tryToAuth(ActionEvent actionEvent) {
-        Authorization.tryToAuth("log","pass");
+        Network.start();
+        AuthRequest authRequest = new AuthRequest("login","password");
+        Network.sendMsg(authRequest);
+        connect();
     }
 }
